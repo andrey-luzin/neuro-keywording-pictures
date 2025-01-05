@@ -1,4 +1,5 @@
 import type { Config } from "tailwindcss";
+import plugin from 'tailwindcss/plugin';
 
 export default {
   content: [
@@ -14,5 +15,20 @@ export default {
       },
     },
   },
-  plugins: [],
+  safelist: [
+    {
+      pattern:
+        /bg-(red|blue|gray|green)-(300|500|600|700|900)/,
+      variants: ['hover', 'active', 'focus']
+    },
+    {
+      pattern: /text-(red|blue|gray)-(300|650|700|900)/,
+      variants: ['hover', 'active', 'focus']
+    },
+  ],
+  plugins: [
+    plugin(function({ addVariant }) {
+      addVariant('hocus', ['&:hover', '&:focus']);
+    }),
+  ],
 } satisfies Config;

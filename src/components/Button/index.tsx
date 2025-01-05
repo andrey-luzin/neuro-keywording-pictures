@@ -1,0 +1,80 @@
+'use client';
+import React, { FC, PropsWithChildren, useMemo } from 'react';
+import cn from 'classnames';
+
+type ButtonView = 'default' | 'alert' | 'success';
+
+interface ButtonProps {
+  view?: ButtonView,
+  loading?: boolean,
+  disabled?: boolean,
+  className?: string;
+  icon?: React.ReactNode,
+  as?: 'button' | 'a',
+};
+
+interface ButtonElementProps extends ButtonProps, React.ButtonHTMLAttributes<HTMLButtonElement>{};
+
+interface LinkElementProps extends ButtonProps, React.AnchorHTMLAttributes<HTMLAnchorElement>{};
+
+export const Button: FC<PropsWithChildren<ButtonElementProps | LinkElementProps>> = ({
+  className,
+  icon,
+  view = 'default',
+  disabled = false,
+  loading = false,
+  as = 'button',
+  children,
+  ...props
+}) => {
+  const color = useMemo(() => {
+    if (disabled) {
+      return 'gray';
+    };
+    switch (view) {
+      case 'default':
+        return 'blue';
+      case 'alert':
+        return 'red';
+      case 'success':
+        return 'green';
+      default: 'blue';
+    }
+  }, [view, disabled]);
+
+  const classNames = cn(
+    'py-2 px-4 rounded text-white',
+    !disabled && !loading ? `hover:bg-${color}-500` : 'cursor-not-allowed',
+    disabled && 'bg-gray-650',
+    !disabled && `bg-${color}-700 hover:bg-${color}-500 active:bg-${color}-900 focus:bg-${color}-900`,
+    'transition gap-2 inline-flex items-center justify-center text-base focus:outline-none focus-visible:ring',
+    className,
+  );
+
+  if (as === 'button') {
+    const { onClick, disabled, ...buttonProps } = props as ButtonElementProps;
+    return (
+      <button
+        onClick={!disabled ? onClick : () => {}}
+        className={classNames}
+        disabled={loading}
+        {...buttonProps}
+      >
+        {icon && icon}
+        {children}
+      </button>
+    );
+  }
+
+  if (as === 'a') {
+    const { ...linkProps } = props as LinkElementProps;
+    return (
+      <a className={classNames} {...linkProps}>
+        {icon && icon}
+        {children}
+      </a>
+    );
+  }
+
+  return null;
+};
