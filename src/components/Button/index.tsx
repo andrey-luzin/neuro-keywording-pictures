@@ -1,6 +1,7 @@
 'use client';
-import React, { FC, PropsWithChildren, useMemo } from 'react';
+import React, { FC, PropsWithChildren, use, useMemo } from 'react';
 import cn from 'classnames';
+import { Spinner } from '../Spinner';
 
 type ButtonView = 'default' | 'alert' | 'success';
 
@@ -42,6 +43,18 @@ export const Button: FC<PropsWithChildren<ButtonElementProps | LinkElementProps>
     }
   }, [view, disabled]);
 
+  const loaderColor = useMemo(() => {
+    switch (view) {
+      case 'default':
+        return 'blue';
+      case 'alert':
+        return 'red';
+      case 'success':
+        return 'green';
+      default: 'blue';
+    }
+  }, [view]);
+
   const classNames = cn(
     'py-2 px-4 rounded text-white',
     !disabled && !loading ? `hover:bg-${color}-500` : 'cursor-not-allowed',
@@ -50,6 +63,11 @@ export const Button: FC<PropsWithChildren<ButtonElementProps | LinkElementProps>
     'transition gap-2 inline-flex items-center justify-center text-base focus:outline-none focus-visible:ring',
     className,
   );
+
+  // eslint-disable-next-line react/display-name
+  const Loader = useMemo(() => () => {
+    return <Spinner size={5} color={loaderColor} className="w-5 h-5 inline" />;
+  }, [loaderColor]);
   
   if (as === 'button') {
     const { onClick, ...buttonProps } = props as ButtonElementProps;  
@@ -62,6 +80,7 @@ export const Button: FC<PropsWithChildren<ButtonElementProps | LinkElementProps>
       >
         {icon && icon}
         {children}
+        {loading && <Loader />}
       </button>
     );
   }
@@ -72,6 +91,7 @@ export const Button: FC<PropsWithChildren<ButtonElementProps | LinkElementProps>
       <a className={classNames} {...linkProps}>
         {icon && icon}
         {children}
+        {loading && <Loader />}
       </a>
     );
   }

@@ -25,6 +25,11 @@ export default {
       pattern: /text-(red|blue|gray)-(300|650|700|900)/,
       variants: ['hover', 'active', 'focus']
     },
+    {
+      pattern:
+        /fill-(red|blue|gray|green)-(300|400|500|600|700|900)/,
+      variants: ['hover', 'active', 'focus']
+    },
   ],
   plugins: [
     plugin(function({ addVariant }) {
