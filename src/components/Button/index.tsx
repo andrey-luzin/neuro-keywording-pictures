@@ -45,19 +45,19 @@ export const Button: FC<PropsWithChildren<ButtonElementProps | LinkElementProps>
   const classNames = cn(
     'py-2 px-4 rounded text-white',
     !disabled && !loading ? `hover:bg-${color}-500` : 'cursor-not-allowed',
-    disabled && 'bg-gray-650',
+    disabled && 'bg-gray-400',
     !disabled && `bg-${color}-700 hover:bg-${color}-500 active:bg-${color}-900 focus:bg-${color}-900`,
     'transition gap-2 inline-flex items-center justify-center text-base focus:outline-none focus-visible:ring',
     className,
   );
-
+  
   if (as === 'button') {
-    const { onClick, disabled, ...buttonProps } = props as ButtonElementProps;
+    const { onClick, ...buttonProps } = props as ButtonElementProps;  
     return (
       <button
         onClick={!disabled ? onClick : () => {}}
         className={classNames}
-        disabled={loading}
+        disabled={disabled || loading}
         {...buttonProps}
       >
         {icon && icon}

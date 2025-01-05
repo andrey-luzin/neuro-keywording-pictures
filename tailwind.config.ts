@@ -18,7 +18,7 @@ export default {
   safelist: [
     {
       pattern:
-        /bg-(red|blue|gray|green)-(300|500|600|700|900)/,
+        /bg-(red|blue|gray|green)-(300|400|500|600|700|900)/,
       variants: ['hover', 'active', 'focus']
     },
     {
