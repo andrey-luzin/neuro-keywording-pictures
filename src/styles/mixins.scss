@@ -1,0 +1,52 @@
+@mixin transition(
+  $property: all,
+  $timing-function: linear,
+  $duration: 0.15s,
+  $delay: 0s
+) {
+  transition: $property $duration $timing-function $delay;
+}
+
+@mixin media($breakpoint, $direction: 'below') {
+  @if $direction == 'below' {
+    @media screen and (max-width: #{$breakpoint - 1}) {
+      @content;
+    }
+  } @else if $direction == 'above' {
+    @media screen and (min-width: calc($breakpoint)) {
+      @content;
+    }
+  }
+}
+
+%clear-button {
+  margin: 0;
+  padding: 0;
+  font-size: inherit;
+  font-family: inherit;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+}
+
+%before {
+  position: relative;
+  z-index: 1;
+
+  &:before {
+    position: absolute;
+    content: '';
+    z-index: 2;
+  }
+}
+
+%after {
+  position: relative;
+  z-index: 2;
+
+  &:after {
+    position: absolute;
+    content: '';
+    z-index: 3;
+  }
+}
