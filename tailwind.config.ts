@@ -17,8 +17,7 @@ export default {
   },
   safelist: [
     {
-      pattern:
-        /bg-(red|blue|gray|green)-(300|400|500|600|700|900)/,
+      pattern: /bg-(red|blue|gray|green)-(300|400|500|600|700|900)/,
       variants: ['hover', 'active', 'focus']
     },
     {
@@ -26,9 +25,14 @@ export default {
       variants: ['hover', 'active', 'focus']
     },
     {
-      pattern:
-        /fill-(red|blue|gray|green)-(300|400|500|600|700|900)/,
+      pattern: /fill-(red|blue|gray|green)-(300|400|500|600|700|900)/,
       variants: ['hover', 'active', 'focus']
+    },
+    {
+      pattern: /w-(1|2|3|4|5|6|7|8|9|10)/,
+    },
+    {
+      pattern: /h-(1|2|3|4|5|6|7|8|9|10)/,
     },
   ],
   plugins: [

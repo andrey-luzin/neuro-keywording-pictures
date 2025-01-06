@@ -66,7 +66,7 @@ export const Button: FC<PropsWithChildren<ButtonElementProps | LinkElementProps>
 
   // eslint-disable-next-line react/display-name
   const Loader = useMemo(() => () => {
-    return <Spinner size={5} color={loaderColor} className="w-5 h-5 inline" />;
+    return <Spinner size={5} color={loaderColor} className="inline" />;
   }, [loaderColor]);
   
   if (as === 'button') {

@@ -10,6 +10,10 @@ export async function POST(req: Request): Promise<Response> {
       description: 'description',
     }
 
+    // TESTING ERROR HANDLING
+    // if (fileName === 'Снимок экрана 2025-01-04 в 02.35.45.png') {
+    //   throw new Error('Failed to generate keywords');
+    // }
     return new Response(JSON.stringify(responseBody), {
       status: 200,
       headers: { 'Content-Type': 'application/json' },
