@@ -21,7 +21,7 @@ export const UploadFiles: FC<UploadButtonProps> = () => {
   // Состояние для отображения загрузки для генерации ключевых слов
   const [isUploading, setIsUploading] = useState<boolean>(false);
   const [filesCount, setFilesCount] = useState<number>(0);
-  const [checkingData, setCheckingData] = useState<ChatGPTGenerateKeywordsResponse[] | null>(null);
+  const [checkingData, setCheckingData] = useState<GenerateKeywordsResultType[] | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
   const handleButtonClick = () => {
@@ -41,7 +41,17 @@ export const UploadFiles: FC<UploadButtonProps> = () => {
       successfulUploadingResults.length &&
       filesCount - 1 === successfulUploadingResults.length
     ) {
-      fetchChecking().then(() => setCheckingData(results));
+      fetchChecking().then(() => {
+        const resultsWithFiles: GenerateKeywordsResultType[] = results.map((result) => {
+          return successfulUploadingResults.find((successfulResult) => {
+            if (successfulResult.fileName === result.fileName) {
+              return { ...result, file: successfulResult.file };
+            }
+          })
+        }).filter((result): result is GenerateKeywordsResultType => result !== undefined);
+
+        setCheckingData(resultsWithFiles)
+      });
     }
   },[filesCount, successfulUploadingResults]);
 
@@ -52,6 +62,7 @@ export const UploadFiles: FC<UploadButtonProps> = () => {
     setErroneousUploadingFiles([]);
     setSuccessfulUploadingResults([]);
     setInitUploadingCompleted(false);
+    setCheckingData(null)
     const { files } = event.target;
 
     if (files) {

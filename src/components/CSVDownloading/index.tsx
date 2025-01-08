@@ -1,11 +1,11 @@
-import { ChatGPTGenerateKeywordsResponse } from '@/types/chatGPT';
+import { GenerateKeywordsResultType } from '@/types/chatGPT';
 import React, { FC, useCallback, useState } from 'react';
 import { Button } from '../Button';
 import { generateCSV } from '@/api';
 import { getCurrentTime } from '@/utils';
 
 type CSVDownloadingProps = {
-  data: ChatGPTGenerateKeywordsResponse[],
+  data: GenerateKeywordsResultType[],
   className?: string,
 };
 
@@ -16,7 +16,8 @@ export const CSVDownloading: FC<CSVDownloadingProps> = ({ data, className }) => 
     setIsLoading(true);
 
     try {
-      const response = await generateCSV(data);
+      const dataWithoutFile = data.map(({ file, ...rest }) => rest);
+      const response = await generateCSV(dataWithoutFile);
 
       const blob = await response.blob();
       const url = window.URL.createObjectURL(blob);
