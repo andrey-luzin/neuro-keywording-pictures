@@ -6,6 +6,7 @@ import { checkResults, generateKeywords } from '@/api';
 import { Spinner } from '../Spinner';
 import { ChatGPTGenerateKeywordsResponse, GenerateKeywordsResultType } from '@/types/chatGPT';
 import { CSVDownloading } from '../CSVDownloading';
+import { UpdateExif } from '../UpdateExif';
 
 type UploadButtonProps = unknown;
 
@@ -185,7 +186,10 @@ export const UploadFiles: FC<UploadButtonProps> = () => {
       }
       {
         checkingData && checkingData.length &&
-        <CSVDownloading data={checkingData} />
+        <div className='flex gap-4'>
+          <CSVDownloading data={checkingData} />
+          <UpdateExif data={checkingData} />
+        </div>
       }
     </div>
   );
