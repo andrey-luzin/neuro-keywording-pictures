@@ -1,5 +1,5 @@
 'use client';
-import React, { FC, PropsWithChildren, use, useMemo } from 'react';
+import React, { FC, PropsWithChildren, useMemo } from 'react';
 import cn from 'classnames';
 import { Spinner } from '../Spinner';
 

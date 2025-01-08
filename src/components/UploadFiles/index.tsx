@@ -1,10 +1,10 @@
 'use client';
-import React, { FC, useCallback, useRef, useState } from 'react';
+import React, { FC, useCallback, useEffect, useRef, useState } from 'react';
 import cn from 'classnames';
 import { Button } from "@/components/Button";
-import { generateKeywords } from '@/api';
+import { checkResults, generateKeywords } from '@/api';
 import { Spinner } from '../Spinner';
-import { ChatGPTGenerateKeywordsResponse } from '@/types/chatGPT';
+import { ChatGPTGenerateKeywordsResponse, GenerateKeywordsResultType } from '@/types/chatGPT';
 
 type UploadButtonProps = unknown;
 
@@ -14,19 +14,36 @@ export const UploadFiles: FC<UploadButtonProps> = () => {
     useState<ChatGPTGenerateKeywordsResponse[]>([]);
   const [erroneousUploadingFiles, setErroneousUploadingFiles] =
     useState<File[]>([]);
-  const [successfulUploadingResults, setSuccessfulUploadingResults] =
-    useState<(File & ChatGPTGenerateKeywordsResponse)[]>([]);
+  const [successfulUploadingResults, setSuccessfulUploadingResults] = useState<GenerateKeywordsResultType[]>([]);
   // Cостояние, что изначальная загрузка завершена
   const [initUploadingCompleted, setInitUploadingCompleted] = useState<boolean>(false);
   // Состояние для отображения загрузки для генерации ключевых слов
   const [isUploading, setIsUploading] = useState<boolean>(false);
+  const [filesCount, setFilesCount] = useState<number>(0);
   const inputRef = useRef<HTMLInputElement>(null);
 
   const handleButtonClick = () => {
     inputRef.current?.click();
   };
 
+  useEffect(() => {
+    const fetchChecking = async () => {
+      for (const file of successfulUploadingResults) {
+        await checkResults(file);
+      }
+    }
+    if (
+      filesCount &&
+      successfulUploadingResults.length &&
+      filesCount - 1 === successfulUploadingResults.length
+    ) {
+      fetchChecking()
+    }
+  },[filesCount, successfulUploadingResults]);
+
   const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setFilesCount(event.target.files?.length || 0);
+    
     setUploadingResults([]);
     setErroneousUploadingFiles([]);
     setSuccessfulUploadingResults([]);
@@ -44,7 +61,7 @@ export const UploadFiles: FC<UploadButtonProps> = () => {
 
   const handleUploadStart = async (files: File[]) => {
     const results = [];
-    const successfulResults: (File & ChatGPTGenerateKeywordsResponse)[] = [];
+    const successfulResults: GenerateKeywordsResultType[] = [];
     const erroneousFiles = [];
     setErroneousUploadingFiles([]);
     setIsUploading(true);
@@ -54,15 +71,14 @@ export const UploadFiles: FC<UploadButtonProps> = () => {
         const result = await generateKeywords(file);
         const { fileName, ...rest } = result;
         const resultData = { fileName: file.name || fileName, ...rest };
-        successfulResults.push({...file, ...resultData});
-        results.push(resultData);
+        successfulResults.push({...resultData, file});
+        results.push(result);
       } catch (error: any) {
         erroneousFiles.push(file);
         results.push({ fileName: file.name, error: error.message });
-      } finally {
-        setIsUploading(false);
       }
     }
+    setIsUploading(false);
 
     setSuccessfulUploadingResults(prevState => [...prevState, ...successfulResults]);
     setErroneousUploadingFiles(erroneousFiles);

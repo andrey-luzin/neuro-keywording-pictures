@@ -4,3 +4,7 @@ export type ChatGPTGenerateKeywordsResponse = {
   description?: string;
   error?: string;
 };
+
+export type GenerateKeywordsResultType = {
+  file: File;
+} & ChatGPTGenerateKeywordsResponse;
