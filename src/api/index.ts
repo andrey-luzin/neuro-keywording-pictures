@@ -21,8 +21,12 @@ export const generateKeywords = async (file: File): Promise<ChatGPTGenerateKeywo
     
     const json = await response.json();
     return json;
-  } catch (error: any) {
-    throw new Error(`${error.message}`);
+  } catch (error: unknown) {
+    if (error instanceof Error) {
+      throw new Error(`${error.message}`);
+    } else {
+      throw new Error('An unknown error occurred');
+    }
   }
 };
 
@@ -50,7 +54,32 @@ export const checkResults = async (results: GenerateKeywordsResultType) => {
     const json = await response.json();
     return json;
     
-  } catch (error: any) {
-    throw new Error(`${error.message}`);
+  } catch (error) {
+    if (error instanceof Error) {
+      throw new Error(`${error.message}`);
+    } else {
+      throw new Error('An unknown error occurred');
+    }
+  }
+};
+
+export const generateCSV = async (data: ChatGPTGenerateKeywordsResponse[]) => {
+  try {
+    const response = await fetch('/api/generate-csv', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`${errorText}`);
+    }
+    
+    return response;
+  } catch (error) {
+    if (error instanceof Error) {
+      throw new Error(`${error.message}`);
+    } else {
+      throw new Error('An unknown error occurred');
+    }
   }
 }

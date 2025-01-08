@@ -5,6 +5,7 @@ import { Button } from "@/components/Button";
 import { checkResults, generateKeywords } from '@/api';
 import { Spinner } from '../Spinner';
 import { ChatGPTGenerateKeywordsResponse, GenerateKeywordsResultType } from '@/types/chatGPT';
+import { CSVDownloading } from '../CSVDownloading';
 
 type UploadButtonProps = unknown;
 
@@ -20,6 +21,7 @@ export const UploadFiles: FC<UploadButtonProps> = () => {
   // Состояние для отображения загрузки для генерации ключевых слов
   const [isUploading, setIsUploading] = useState<boolean>(false);
   const [filesCount, setFilesCount] = useState<number>(0);
+  const [checkingData, setCheckingData] = useState<ChatGPTGenerateKeywordsResponse[] | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
   const handleButtonClick = () => {
@@ -27,9 +29,11 @@ export const UploadFiles: FC<UploadButtonProps> = () => {
   };
 
   useEffect(() => {
+    const results: ChatGPTGenerateKeywordsResponse[] = [];
     const fetchChecking = async () => {
       for (const file of successfulUploadingResults) {
-        await checkResults(file);
+        const response = await checkResults(file);
+        results.push(response);
       }
     }
     if (
@@ -37,7 +41,7 @@ export const UploadFiles: FC<UploadButtonProps> = () => {
       successfulUploadingResults.length &&
       filesCount - 1 === successfulUploadingResults.length
     ) {
-      fetchChecking()
+      fetchChecking().then(() => setCheckingData(results));
     }
   },[filesCount, successfulUploadingResults]);
 
@@ -167,6 +171,10 @@ export const UploadFiles: FC<UploadButtonProps> = () => {
           <Button view='alert'>Запустить проверку</Button>
         </footer>
         : null
+      }
+      {
+        checkingData && checkingData.length &&
+        <CSVDownloading data={checkingData} />
       }
     </div>
   );
