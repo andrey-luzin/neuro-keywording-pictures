@@ -21,7 +21,6 @@ export const UploadFiles: FC<UploadButtonProps> = () => {
   const [initUploadingCompleted, setInitUploadingCompleted] = useState<boolean>(false);
   // Состояние для отображения загрузки для генерации ключевых слов
   const [isUploading, setIsUploading] = useState<boolean>(false);
-  const [filesCount, setFilesCount] = useState<number>(0);
   const [checkingData, setCheckingData] = useState<GenerateKeywordsResultType[] | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -38,9 +37,9 @@ export const UploadFiles: FC<UploadButtonProps> = () => {
       }
     }
     if (
-      filesCount &&
+      fileList.length &&
       successfulUploadingResults.length &&
-      filesCount - 1 === successfulUploadingResults.length
+      fileList.length === successfulUploadingResults.length
     ) {
       fetchChecking().then(() => {
         const resultsWithFiles: GenerateKeywordsResultType[] = results.map((result) => {
@@ -54,11 +53,9 @@ export const UploadFiles: FC<UploadButtonProps> = () => {
         setCheckingData(resultsWithFiles)
       });
     }
-  },[filesCount, successfulUploadingResults]);
+  },[fileList, successfulUploadingResults]);
 
   const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setFilesCount(event.target.files?.length || 0);
-    
     setUploadingResults([]);
     setErroneousUploadingFiles([]);
     setSuccessfulUploadingResults([]);

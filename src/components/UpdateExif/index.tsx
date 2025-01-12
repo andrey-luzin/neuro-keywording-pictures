@@ -13,8 +13,14 @@ export const UpdateExif: FC<UpdateExifProps> = ({ data }) => {
 
   const handleUpdateExif = useCallback(async () => {
     setIsLoading(true);
-    
-    await updateExif(data).then(async (response) => {
+    try {
+      const response = await updateExif(data);
+  
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(errorText);
+      }
+
       const blob = await response.blob();
       const downloadUrl = URL.createObjectURL(blob);
       const link = document.createElement("a");
@@ -23,9 +29,15 @@ export const UpdateExif: FC<UpdateExifProps> = ({ data }) => {
       document.body.appendChild(link);
       link.click();
       link.remove();
-    }).finally(() => {
+    } catch (error) {
+      if (error instanceof Error) {
+        throw new Error(`${error.message}`);
+      } else {
+        throw new Error("An unknown error occurred");
+      } 
+    } finally {
       setIsLoading(false);
-    })
+    }
   }, [data]);
   
   return(
