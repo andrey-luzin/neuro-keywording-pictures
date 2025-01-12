@@ -1,4 +1,4 @@
-import React, { FC, useRef, useState } from 'react';
+import React, { FC, useRef } from 'react';
 import { parse } from 'papaparse';
 
 import { Button } from '../Button';
