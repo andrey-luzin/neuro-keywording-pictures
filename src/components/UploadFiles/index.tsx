@@ -7,6 +7,7 @@ import { Spinner } from '../Spinner';
 import { ChatGPTGenerateKeywordsResponse, GenerateKeywordsResultType } from '@/types/chatGPT';
 import { CSVDownloading } from '../CSVDownloading';
 import { UpdateExif } from '../UpdateExif';
+import { UploadCSV } from '../UploadCSV';
 
 type UploadButtonProps = unknown;
 
@@ -183,9 +184,12 @@ export const UploadFiles: FC<UploadButtonProps> = () => {
       }
       {
         checkingData && checkingData.length &&
-        <div className='flex gap-4'>
+        <div className='flex gap-4 flex-wrap'>
           <CSVDownloading data={checkingData} />
-          <UpdateExif data={checkingData} />
+          <div className='flex gap-4 ml-auto'>
+            <UploadCSV data={checkingData} setData={data => setCheckingData(data)} />
+            <UpdateExif data={checkingData} />
+          </div>
         </div>
       }
     </div>
