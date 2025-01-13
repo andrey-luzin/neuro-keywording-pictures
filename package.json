@@ -10,6 +10,7 @@
     "prepare": "husky"
   },
   "dependencies": {
+    "@headlessui/react": "^2.2.0",
     "adm-zip": "^0.5.16",
     "aws-sdk": "^2.1692.0",
     "classnames": "^2.5.1",

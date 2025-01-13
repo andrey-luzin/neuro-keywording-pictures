@@ -56,8 +56,8 @@ export const Button: FC<PropsWithChildren<ButtonElementProps | LinkElementProps>
   }, [view]);
 
   const classNames = cn(
-    'py-2 px-4 rounded text-white',
-    !disabled && !loading ? `hover:bg-${color}-500` : 'cursor-not-allowed',
+    'py-2 px-4 rounded text-white text-base',
+    !(disabled && loading) ? `hover:bg-${color}-500` : 'cursor-not-allowed',
     disabled && 'bg-gray-400',
     !disabled && `bg-${color}-700 hover:bg-${color}-500 active:bg-${color}-900 focus:bg-${color}-900`,
     'transition gap-2 inline-flex items-center justify-center text-base focus:outline-none focus-visible:ring',

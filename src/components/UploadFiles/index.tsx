@@ -4,12 +4,30 @@ import cn from 'classnames';
 import { Button } from "@/components/Button";
 import { checkResults, generateKeywords } from '@/api';
 import { Spinner } from '../Spinner';
-import { ChatGPTGenerateKeywordsResponse, GenerateKeywordsResultType } from '@/types/chatGPT';
+import { ChatGPTGenerateKeywordsResponse, ChatGptModels, GenerateKeywordsResultType } from '@/types/chatGPT';
 import { CSVDownloading } from '../CSVDownloading';
 import { UpdateExif } from '../UpdateExif';
 import { UploadCSV } from '../UploadCSV';
+import { Select } from '../Select';
 
 type UploadButtonProps = unknown;
+
+const models = [
+  {
+    label: ChatGptModels.GPT4o,
+    value: ChatGptModels.GPT4o,
+  },
+  {
+    label: ChatGptModels.GPT4oMini,
+    value: ChatGptModels.GPT4oMini,
+  },
+  {
+    label: ChatGptModels.GPT4oLatest,
+    value: ChatGptModels.GPT4oLatest,
+  },
+];
+
+const chatGPTActiveModel = 'chatGPTActiveModel';
 
 export const UploadFiles: FC<UploadButtonProps> = () => {
   const [fileList, setFileList] = useState<File[]>([]);
@@ -24,6 +42,16 @@ export const UploadFiles: FC<UploadButtonProps> = () => {
   const [isUploading, setIsUploading] = useState<boolean>(false);
   const [checkingData, setCheckingData] = useState<GenerateKeywordsResultType[] | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const [activeModel, setActiveModel] = useState<ChatGptModels | string>(models[0].value);
+
+  useEffect(() => {
+    if (typeof window !== undefined) {
+      const name = localStorage.getItem(chatGPTActiveModel);
+      if (name) {
+        setActiveModel(name)
+      }
+    }
+  }, []);
 
   const handleButtonClick = () => {
     inputRef.current?.click();
@@ -33,7 +61,7 @@ export const UploadFiles: FC<UploadButtonProps> = () => {
     const fetchChecking = async () => {
       const results: ChatGPTGenerateKeywordsResponse[] = [];
       for (const file of successfulUploadingResults) {
-        const response = await checkResults(file);
+        const response = await checkResults(file, activeModel as ChatGptModels);
         results.push(response);
       }
 
@@ -63,7 +91,7 @@ export const UploadFiles: FC<UploadButtonProps> = () => {
         setCheckingData(resultsWithFiles)
       });
     }
-  },[fileList, successfulUploadingResults]);
+  },[fileList, successfulUploadingResults, activeModel]);
 
   const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setUploadingResults([]);
@@ -91,7 +119,7 @@ export const UploadFiles: FC<UploadButtonProps> = () => {
 
     for (const file of files) {
       try {
-        const result = await generateKeywords(file);
+        const result = await generateKeywords(file, activeModel as ChatGptModels);
         const { fileName, ...rest } = result;
         const resultData = { fileName: file.name || fileName, ...rest };
         successfulResults.push({...resultData, file});
@@ -129,9 +157,12 @@ export const UploadFiles: FC<UploadButtonProps> = () => {
       }
     })
   }, [erroneousUploadingFiles, successfulUploadingResults]);
-  
-  console.log('checkingData', checkingData);
-  
+
+
+  const handleSelectChange = (value: string) => {
+    setActiveModel(value);
+    localStorage.setItem(chatGPTActiveModel, value);
+  }
 
   return(
     <div className="upload-button flex flex-col gap-6 h-full">
@@ -149,14 +180,17 @@ export const UploadFiles: FC<UploadButtonProps> = () => {
         <Button onClick={handleButtonClick} disabled={isUploading}>Выбери директорию или файлы</Button>
         {
           !isUploading && !initUploadingCompleted &&
-          <Button
-            view='success'
-            disabled={!fileList.length || isUploading}
-            onClick={handleInitUploadStart}
-            loading={isUploading}
-          >
-            Начать загрузку
-          </Button>
+          <>
+            <Select options={models} onChange={handleSelectChange} selected={activeModel} />
+            <Button
+              view='success'
+              disabled={!fileList.length || isUploading}
+              onClick={handleInitUploadStart}
+              loading={isUploading}
+            >
+              Начать загрузку
+            </Button>
+          </>
         }
         {
           !isUploading && erroneousUploadingFiles.length ?

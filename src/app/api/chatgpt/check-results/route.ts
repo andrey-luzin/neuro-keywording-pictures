@@ -13,10 +13,10 @@ export async function POST(req: Request): Promise<Response> {
       return new Response('Нет данных для проверки', { status: 400 });
     }
     console.log('check-results data', data);
-    const { fileName, keywords, description } = data;
+    const { fileName, keywords, description, model } = data;
 
     const response = await openai.chat.completions.create({
-      model: "gpt-4o",
+      model,
       messages: [
         {
           "role": "developer",

@@ -1,3 +1,4 @@
+import { ChatGptModels } from "@/types/chatGPT";
 import AWS from "aws-sdk";
 import OpenAI from 'openai';
 
@@ -15,6 +16,10 @@ export async function POST(req: Request): Promise<Response> {
   try {
     const formData = await req.formData();
     const file = formData.get('file') as File;
+    const model = formData.get('model') as string || ChatGptModels.GPT4o;
+
+    console.log('model', model);
+
     if (!file) {
       return new Response('Файл отсутствует', { status: 400 });
     }
@@ -37,7 +42,7 @@ export async function POST(req: Request): Promise<Response> {
     const fileUrl = uploadResult.Location;
 
     const response = await openai.chat.completions.create({
-      model: "gpt-4o",
+      model,
       messages: [
         {
           "role": "developer",

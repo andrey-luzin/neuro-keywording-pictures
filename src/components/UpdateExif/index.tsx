@@ -3,6 +3,7 @@ import React, { FC, useCallback, useState } from 'react';
 import { Button } from '../Button';
 import { GenerateKeywordsResultType } from '@/types/chatGPT';
 import { updateExif } from '@/api';
+import { getCurrentTime } from '@/utils';
 
 type UpdateExifProps = {
   data: GenerateKeywordsResultType[],
@@ -25,7 +26,7 @@ export const UpdateExif: FC<UpdateExifProps> = ({ data }) => {
       const downloadUrl = URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.href = downloadUrl;
-      link.download = "updated-images.zip";
+      link.download = `updated-images_${getCurrentTime()}.zip`;
       document.body.appendChild(link);
       link.click();
       link.remove();

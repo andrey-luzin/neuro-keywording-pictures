@@ -2,6 +2,7 @@ import { exiftool } from "exiftool-vendored";
 import fs from "fs";
 import path from "path";
 import AdmZip from "adm-zip";
+import { getCurrentTime } from '@/utils';
 
 export async function POST(req: Request): Promise<Response> {
   try {
@@ -29,7 +30,11 @@ export async function POST(req: Request): Promise<Response> {
 
       fs.writeFileSync(tempFilePath, Buffer.from(base64File, "base64"));
 
+      console.log('keywords', keywords);
+      console.log('description', description);
+      
       const exifData: Record<string, string> = {};
+      exifData.Author = process.env.AUTHOR_NAME || '';
       if (keywords) {
         exifData.Keywords = keywords;
       }
@@ -38,6 +43,8 @@ export async function POST(req: Request): Promise<Response> {
         exifData.Description = description;
         exifData.Title = description;
       }
+
+      console.log('exifData', exifData);
 
       await exiftool.write(tempFilePath, exifData);
 
@@ -52,7 +59,7 @@ export async function POST(req: Request): Promise<Response> {
       status: 200,
       headers: {
         "Content-Type": "application/zip",
-        "Content-Disposition": "attachment; filename=updated-images.zip",
+        "Content-Disposition": `attachment; filename=updated-images_${getCurrentTime()}.zip`,
       },
     });
   } catch (error) {

@@ -1,10 +1,11 @@
-import { ChatGPTGenerateKeywordsResponse, GenerateKeywordsResultType } from "@/types/chatGPT";
+import { ChatGPTGenerateKeywordsResponse, ChatGptModels, GenerateKeywordsResultType } from "@/types/chatGPT";
 
-export const generateKeywords = async (file: File): Promise<ChatGPTGenerateKeywordsResponse> => {
+export const generateKeywords = async (file: File, model?: ChatGptModels): Promise<ChatGPTGenerateKeywordsResponse> => {
   try {
     console.log('generateKeywords');
     const formData = new FormData();
     formData.append("file", file, file.name);
+    formData.append("model", model || ChatGptModels.GPT4o);
 
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 15000);
@@ -31,12 +32,13 @@ export const generateKeywords = async (file: File): Promise<ChatGPTGenerateKeywo
   }
 };
 
-export const checkResults = async (fileData: GenerateKeywordsResultType) => {
+export const checkResults = async (fileData: GenerateKeywordsResultType, model?: ChatGptModels) => {
   try {
     const preparedData = {
       fileName: fileData.fileName,
       keywords: fileData.keywords,
-      description: fileData.description
+      description: fileData.description,
+      model: model || ChatGptModels.GPT4o,
     }
 
     const response = await fetch('/api/chatgpt/check-results', {
