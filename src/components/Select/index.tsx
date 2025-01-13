@@ -19,7 +19,7 @@ export const Select: FC<PropsWithChildren<SelectProps>> = ({ options, onChange, 
     if (onChange) {
       onChange(event.target.value);
     }
-  }, [onChange, options]);
+  }, [onChange]);
 
   return (
     <div className="max-w-md">

@@ -110,7 +110,7 @@ export const UploadFiles: FC<UploadButtonProps> = () => {
     }
   };
 
-  const handleUploadStart = async (files: File[]) => {
+  const handleUploadStart = useCallback(async (files: File[]) => {
     const results = [];
     const successfulResults: GenerateKeywordsResultType[] = [];
     const erroneousFiles = [];
@@ -124,6 +124,7 @@ export const UploadFiles: FC<UploadButtonProps> = () => {
         const resultData = { fileName: file.name || fileName, ...rest };
         successfulResults.push({...resultData, file});
         results.push(result);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } catch (error: any) {
         erroneousFiles.push(file);
         results.push({ fileName: file.name, error: error.message });
@@ -134,7 +135,7 @@ export const UploadFiles: FC<UploadButtonProps> = () => {
     setSuccessfulUploadingResults(prevState => [...prevState, ...successfulResults]);
     setErroneousUploadingFiles(erroneousFiles);
     return results
-  };
+  }, [activeModel]);
 
   const handleInitUploadStart = useCallback(async () => {
     setIsUploading(true);
@@ -146,7 +147,7 @@ export const UploadFiles: FC<UploadButtonProps> = () => {
         setInitUploadingCompleted(true);
       }
     })
-  }, [fileList]);
+  }, [fileList, handleUploadStart]);
 
   const handleErrorsUploadStart = useCallback(async () => {
     setErroneousUploadingFiles([]);
@@ -156,7 +157,7 @@ export const UploadFiles: FC<UploadButtonProps> = () => {
         setUploadingResults([...successfulUploadingResults, ...results]);
       }
     })
-  }, [erroneousUploadingFiles, successfulUploadingResults]);
+  }, [erroneousUploadingFiles, handleUploadStart, successfulUploadingResults]);
 
 
   const handleSelectChange = (value: string) => {
