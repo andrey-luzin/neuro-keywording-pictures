@@ -2,11 +2,12 @@ import { ChatGPTGenerateKeywordsResponse, GenerateKeywordsResultType } from "@/t
 
 export const generateKeywords = async (file: File): Promise<ChatGPTGenerateKeywordsResponse> => {
   try {
+    console.log('generateKeywords');
     const formData = new FormData();
     formData.append("file", file, file.name);
 
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 5000);
+    const timeoutId = setTimeout(() => controller.abort(), 15000);
 
     const response = await fetch('/api/chatgpt/generate-keywords', {
       method: 'POST',

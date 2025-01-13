@@ -183,7 +183,7 @@ export const UploadFiles: FC<UploadButtonProps> = () => {
         : null
       }
       {
-        checkingData && checkingData.length &&
+        checkingData && checkingData.length ?
         <div className='flex gap-4 flex-wrap'>
           <CSVDownloading data={checkingData} />
           <div className='flex gap-4 ml-auto'>
@@ -191,6 +191,7 @@ export const UploadFiles: FC<UploadButtonProps> = () => {
             <UpdateExif data={checkingData} />
           </div>
         </div>
+        : null
       }
     </div>
   );
