@@ -26,7 +26,7 @@ export async function POST(req: Request): Promise<Response> {
 
     const uploadParams = {
       Bucket: process.env.S3_BUCKET_NAME!,
-      Key: `uploads/${file.name}`,
+      Key: `uploads/${fileName}`,
       Body: buffer,
       ContentType: file.type,
       ACL: "public-read",
@@ -44,7 +44,7 @@ export async function POST(req: Request): Promise<Response> {
           "content": [
             {
               "type": "text",
-              "text": 'Return a response in JSON as string format with the type: {fileName, keywords, description}'
+              "text": 'Return a response in JSON as string format with the type: {keywords, description}'
             }
           ]
         },
@@ -62,17 +62,28 @@ export async function POST(req: Request): Promise<Response> {
           ]),
         },
       ],
+      response_format: { type: "json_object" },
     });
  
     const responseText = response.choices[0]?.message?.content ?? '';
-    const cleanedResponse = responseText.trim().replace(/^```json/, '').replace(/```$/, '');
-    const parsedResponse = JSON.parse(cleanedResponse);
+    const parsedResponse = JSON.parse(responseText);
 
     const responseBody = {
       fileName,
       keywords: parsedResponse.keywords,
       description: parsedResponse.description,
     };
+
+    console.log('generate keywords, responseBody:', responseBody);
+
+    const deleteParams = {
+      Bucket: process.env.S3_BUCKET_NAME!,
+      Key: `uploads/${fileName}`,
+    };
+
+    s3.deleteObject(deleteParams).promise().catch((err) => {
+      console.error("Ошибка при удалении файла из S3:", err);
+    });
 
     return new Response(JSON.stringify(responseBody), {
       status: 200,

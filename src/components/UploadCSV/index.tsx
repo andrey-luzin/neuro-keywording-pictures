@@ -12,8 +12,6 @@ type UploadCSVProps = {
 export const UploadCSV: FC<UploadCSVProps> = ({ data, setData }) => {
   const inputRef = useRef<HTMLInputElement>(null);
 
-  console.log('data', data);
-
   const handleButtonClick = () => {
     inputRef.current?.click();
   };

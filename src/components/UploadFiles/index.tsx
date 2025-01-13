@@ -30,25 +30,34 @@ export const UploadFiles: FC<UploadButtonProps> = () => {
   };
 
   useEffect(() => {
-    const results: ChatGPTGenerateKeywordsResponse[] = [];
     const fetchChecking = async () => {
+      const results: ChatGPTGenerateKeywordsResponse[] = [];
       for (const file of successfulUploadingResults) {
         const response = await checkResults(file);
         results.push(response);
       }
+
+      return results;
     }
     if (
       fileList.length &&
       successfulUploadingResults.length &&
       fileList.length === successfulUploadingResults.length
     ) {
-      fetchChecking().then(() => {
+      fetchChecking().then((results) => {
         const resultsWithFiles: GenerateKeywordsResultType[] = results.map((result) => {
-          return successfulUploadingResults.find((successfulResult) => {
-            if (successfulResult.fileName === result.fileName) {
-              return { ...result, file: successfulResult.file };
-            }
-          })
+          const successfulResult = successfulUploadingResults.find(
+            (successfulResult) => successfulResult.fileName === result.fileName
+          );
+          
+          if (successfulResult) {
+            return {
+              ...result,
+              file: successfulResult.file,
+            };
+          }
+        
+          return undefined;
         }).filter((result): result is GenerateKeywordsResultType => result !== undefined);
 
         setCheckingData(resultsWithFiles)
@@ -120,6 +129,9 @@ export const UploadFiles: FC<UploadButtonProps> = () => {
       }
     })
   }, [erroneousUploadingFiles, successfulUploadingResults]);
+  
+  console.log('checkingData', checkingData);
+  
 
   return(
     <div className="upload-button flex flex-col gap-6 h-full">

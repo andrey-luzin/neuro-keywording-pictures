@@ -31,21 +31,17 @@ export const generateKeywords = async (file: File): Promise<ChatGPTGenerateKeywo
   }
 };
 
-export const checkResults = async (results: GenerateKeywordsResultType) => {
+export const checkResults = async (fileData: GenerateKeywordsResultType) => {
   try {
-    const formData = new FormData();
-    formData.append('fileName', results.fileName);
-    if (results.keywords) {
-      formData.append('keywords', results.keywords);
+    const preparedData = {
+      fileName: fileData.fileName,
+      keywords: fileData.keywords,
+      description: fileData.description
     }
-    if (results.description) {
-      formData.append('description', results.description);
-    }
-    formData.append('file', results.file);
 
     const response = await fetch('/api/chatgpt/check-results', {
       method: 'POST',
-      body: formData,
+      body: JSON.stringify(preparedData),
     });
     if (!response.ok) {
       const errorText = await response.text();
