@@ -7,12 +7,14 @@ import { getCurrentTime } from '@/utils';
 type CSVDownloadingProps = {
   data: GenerateKeywordsResultType[],
   className?: string,
+  onClick: () => void,
 };
 
-export const CSVDownloading: FC<CSVDownloadingProps> = ({ data, className }) => {
+export const CSVDownloading: FC<CSVDownloadingProps> = ({ data, className, onClick }) => {
   const [isLoading, setIsLoading] = useState<boolean>(false);
 
   const downloadCsv =  useCallback(async () => {
+    onClick();
     setIsLoading(true);
 
     try {
@@ -32,7 +34,7 @@ export const CSVDownloading: FC<CSVDownloadingProps> = ({ data, className }) => 
     } finally {
       setIsLoading(false);
     }
-  }, [data]);
+  }, [data, onClick]);
 
   return(
     <div className={className}>

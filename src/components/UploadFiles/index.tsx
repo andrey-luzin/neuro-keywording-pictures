@@ -43,6 +43,11 @@ export const UploadFiles: FC<UploadButtonProps> = () => {
   const [checkingData, setCheckingData] = useState<GenerateKeywordsResultType[] | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const [activeModel, setActiveModel] = useState<ChatGptModels | string>(models[0].value);
+  const [error, serError] = useState<string>('');
+
+  const clearError = () => {
+    serError('');
+  }
 
   useEffect(() => {
     if (typeof window !== undefined) {
@@ -94,6 +99,7 @@ export const UploadFiles: FC<UploadButtonProps> = () => {
   },[fileList, successfulUploadingResults, activeModel]);
 
   const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    serError('');
     setUploadingResults([]);
     setErroneousUploadingFiles([]);
     setSuccessfulUploadingResults([]);
@@ -138,6 +144,7 @@ export const UploadFiles: FC<UploadButtonProps> = () => {
   }, [activeModel]);
 
   const handleInitUploadStart = useCallback(async () => {
+    serError('');
     setIsUploading(true);
     setUploadingResults([]);
 
@@ -150,6 +157,7 @@ export const UploadFiles: FC<UploadButtonProps> = () => {
   }, [fileList, handleUploadStart]);
 
   const handleErrorsUploadStart = useCallback(async () => {
+    serError('');
     setErroneousUploadingFiles([]);
 
     await handleUploadStart(erroneousUploadingFiles).then((results) => {
@@ -159,11 +167,16 @@ export const UploadFiles: FC<UploadButtonProps> = () => {
     })
   }, [erroneousUploadingFiles, handleUploadStart, successfulUploadingResults]);
 
-
   const handleSelectChange = (value: string) => {
+    serError('');
     setActiveModel(value);
     localStorage.setItem(chatGPTActiveModel, value);
   }
+
+  const handleSetDataFromNewCSV = (data: GenerateKeywordsResultType[]) => {
+    clearError();
+    setCheckingData(data);
+  };
 
   return(
     <div className="upload-button flex flex-col gap-6 h-full">
@@ -232,13 +245,22 @@ export const UploadFiles: FC<UploadButtonProps> = () => {
       {
         checkingData && checkingData.length ?
         <div className='flex gap-4 flex-wrap'>
-          <CSVDownloading data={checkingData} />
+          <CSVDownloading data={checkingData} onClick={clearError} />
           <div className='flex gap-4 ml-auto'>
-            <UploadCSV data={checkingData} setData={data => setCheckingData(data)} />
-            <UpdateExif data={checkingData} />
+            <UploadCSV
+              data={checkingData}
+              setData={handleSetDataFromNewCSV}
+              setError={error => serError(error)}
+              onClick={clearError}
+            />
+            <UpdateExif data={checkingData} onClick={clearError} />
           </div>
         </div>
         : null
+      }
+      {
+        error &&
+        <div className='text-red-600'>{error}</div>
       }
     </div>
   );

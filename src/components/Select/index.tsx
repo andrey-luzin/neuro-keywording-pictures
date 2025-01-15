@@ -27,18 +27,15 @@ export const Select: FC<PropsWithChildren<SelectProps>> = ({ options, onChange, 
         <div className="relative">
           <SelectComponent
             onChange={handleChange}
+            value={selected}
             className={cn(
-              'py-1.5 px-4 pr-7 border-2 border-blue-700 block w-full appearance-none rounded bg-white/5 text-base text-black',
+              'py-1.5 px-4 pr-7 border-2 border-blue-700 focus:bg-700 block w-full appearance-none rounded bg-white/5 text-base text-black focus:outline-none focus-visible:ring',
             )}
           >
             {
               options.map((option) => {
                 return(
-                  <option
-                    key={option.value}
-                    value={option.value}
-                    selected={selected === option.value || false}
-                  >
+                  <option key={option.value} value={option.value}>
                     {option.label}
                   </option>
                 )

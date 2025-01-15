@@ -35,12 +35,18 @@ export async function POST(req: Request): Promise<Response> {
       
       const exifData: Record<string, string> = {};
       exifData.Author = process.env.AUTHOR_NAME || '';
+      exifData.Creator = process.env.AUTHOR_NAME || '';
+      exifData.Artist = process.env.AUTHOR_NAME || '';
+      exifData['By-line'] = process.env.AUTHOR_NAME || '';
+
       if (keywords) {
         exifData.Keywords = keywords;
       }
       if (description) {
         exifData.Headline = description;
         exifData.Description = description;
+        exifData.ImageDescription = description;
+        exifData['Caption-Abstract'] = description;
         exifData.Title = description;
       }
 

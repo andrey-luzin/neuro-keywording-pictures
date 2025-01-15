@@ -7,12 +7,14 @@ import { getCurrentTime } from '@/utils';
 
 type UpdateExifProps = {
   data: GenerateKeywordsResultType[],
+  onClick: () => void,
 };
 
-export const UpdateExif: FC<UpdateExifProps> = ({ data }) => {
+export const UpdateExif: FC<UpdateExifProps> = ({ data, onClick }) => {
   const [isLoading, setIsLoading] = useState<boolean>(false);
 
   const handleUpdateExif = useCallback(async () => {
+    onClick();
     setIsLoading(true);
     try {
       const response = await updateExif(data);
@@ -39,7 +41,7 @@ export const UpdateExif: FC<UpdateExifProps> = ({ data }) => {
     } finally {
       setIsLoading(false);
     }
-  }, [data]);
+  }, [data, onClick]);
   
   return(
     <div className="">
