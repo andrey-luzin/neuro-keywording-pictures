@@ -1,5 +1,5 @@
 'use client';
-import React, { FC, useCallback, useEffect, useRef, useState } from 'react';
+import React, { ChangeEvent, FC, useCallback, useEffect, useRef, useState } from 'react';
 import cn from 'classnames';
 import { Button } from "@/components/Button";
 import { checkResults, generateKeywords } from '@/api';
@@ -9,6 +9,7 @@ import { CSVDownloading } from '../CSVDownloading';
 import { UpdateExif } from '../UpdateExif';
 import { UploadCSV } from '../UploadCSV';
 import { Select } from '../Select';
+import { Checkbox } from '../Checkbox';
 
 type UploadButtonProps = unknown;
 
@@ -28,6 +29,7 @@ const models = [
 ];
 
 const chatGPTActiveModel = 'chatGPTActiveModel';
+const checkingIsActiveLS = 'checkingIsActive';
 
 export const UploadFiles: FC<UploadButtonProps> = () => {
   const [fileList, setFileList] = useState<File[]>([]);
@@ -44,6 +46,7 @@ export const UploadFiles: FC<UploadButtonProps> = () => {
   const inputRef = useRef<HTMLInputElement>(null);
   const [activeModel, setActiveModel] = useState<ChatGptModels | string>(models[0].value);
   const [error, serError] = useState<string>('');
+  const [checkingIsActive, setCheckingIsActive] = useState<boolean>(false);
 
   const clearError = () => {
     serError('');
@@ -58,45 +61,51 @@ export const UploadFiles: FC<UploadButtonProps> = () => {
     }
   }, []);
 
+  useEffect(() => {
+    if (typeof window !== undefined) {
+      const checkingIsActiveState = localStorage.getItem(checkingIsActiveLS);
+      setCheckingIsActive(checkingIsActiveState === 'true');
+    }
+  }, []);
+
   const handleButtonClick = () => {
     inputRef.current?.click();
   };
 
-  useEffect(() => {
-    const fetchChecking = async () => {
-      const results: ChatGPTGenerateKeywordsResponse[] = [];
-      for (const file of successfulUploadingResults) {
-        const response = await checkResults(file, activeModel as ChatGptModels);
-        results.push(response);
-      }
+  const fetchChecking = useCallback(async () => {
+    const results: ChatGPTGenerateKeywordsResponse[] = await Promise.all(
+      successfulUploadingResults.map(file => checkResults(file, activeModel as ChatGptModels))
+    );
+    if (results?.length) {
+      const resultsWithFiles: GenerateKeywordsResultType[] = results.map((result) => {
+        const successfulResult = successfulUploadingResults.find(
+          (successfulResult) => successfulResult.fileName === result.fileName
+        );
+        
+        if (successfulResult) {
+          return {
+            ...result,
+            file: successfulResult.file,
+          };
+        }
+      
+        return undefined;
+      }).filter((result): result is GenerateKeywordsResultType => result !== undefined);
 
-      return results;
+      setCheckingData(resultsWithFiles)
     }
+  }, [activeModel, successfulUploadingResults]);
+
+  useEffect(() => {
     if (
       fileList.length &&
       successfulUploadingResults.length &&
-      fileList.length === successfulUploadingResults.length
+      fileList.length === successfulUploadingResults.length &&
+      checkingIsActive
     ) {
-      fetchChecking().then((results) => {
-        const resultsWithFiles: GenerateKeywordsResultType[] = results.map((result) => {
-          const successfulResult = successfulUploadingResults.find(
-            (successfulResult) => successfulResult.fileName === result.fileName
-          );
-          
-          if (successfulResult) {
-            return {
-              ...result,
-              file: successfulResult.file,
-            };
-          }
-        
-          return undefined;
-        }).filter((result): result is GenerateKeywordsResultType => result !== undefined);
-
-        setCheckingData(resultsWithFiles)
-      });
+      fetchChecking()
     }
-  },[fileList, successfulUploadingResults, activeModel]);
+  }, [checkingIsActive, fetchChecking, fileList.length, successfulUploadingResults]);
 
   const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     serError('');
@@ -140,8 +149,13 @@ export const UploadFiles: FC<UploadButtonProps> = () => {
 
     setSuccessfulUploadingResults(prevState => [...prevState, ...successfulResults]);
     setErroneousUploadingFiles(erroneousFiles);
+
+    // Если проверка выключена, добавляем успешные результаты в итоговые данные
+    if (!checkingIsActive) {
+      setCheckingData(prevState => [...(prevState || []), ...successfulResults])
+    }
     return results
-  }, [activeModel]);
+  }, [activeModel, checkingIsActive]);
 
   const handleInitUploadStart = useCallback(async () => {
     serError('');
@@ -159,7 +173,6 @@ export const UploadFiles: FC<UploadButtonProps> = () => {
   const handleErrorsUploadStart = useCallback(async () => {
     serError('');
     setErroneousUploadingFiles([]);
-
     await handleUploadStart(erroneousUploadingFiles).then((results) => {
       if (results.length) {
         setUploadingResults([...successfulUploadingResults, ...results]);
@@ -167,10 +180,23 @@ export const UploadFiles: FC<UploadButtonProps> = () => {
     })
   }, [erroneousUploadingFiles, handleUploadStart, successfulUploadingResults]);
 
+  const handleStartChecking = useCallback(() => {
+    fetchChecking();
+  }, [fetchChecking]);
+
   const handleSelectChange = (value: string) => {
     serError('');
     setActiveModel(value);
     localStorage.setItem(chatGPTActiveModel, value);
+  }
+
+  const handleChangeChecking = (value?: ChangeEvent<HTMLInputElement>) => {
+    if (value) {
+      const { checked } = value.target
+      serError('');
+      setCheckingIsActive(checked);
+      localStorage.setItem(checkingIsActiveLS, String(checked));
+    }
   }
 
   const handleSetDataFromNewCSV = (data: GenerateKeywordsResultType[]) => {
@@ -204,6 +230,7 @@ export const UploadFiles: FC<UploadButtonProps> = () => {
             >
               Начать загрузку
             </Button>
+            <Checkbox checked={checkingIsActive} onChange={handleChangeChecking}>Включить проверку</Checkbox>
           </>
         }
         {
@@ -237,8 +264,20 @@ export const UploadFiles: FC<UploadButtonProps> = () => {
       {
         erroneousUploadingFiles.length ?
         <footer className='shrink-0 flex gap-8 items-center'>
-          <span>Содержатся ошибки.<br/> Все равно запустить проверку?</span>
-          <Button view='alert'>Запустить проверку</Button>
+          <span>
+            <span className='text-red-500'>Содержатся ошибки</span>
+            {
+              checkingIsActive &&
+              <>
+              <br/>
+              <span>Все равно запустить проверку?</span>
+              </>
+            }
+          </span>
+          {
+            checkingIsActive &&
+            <Button view='alert' onClick={handleStartChecking}>Запустить проверку</Button>
+          }
         </footer>
         : null
       }
