@@ -1,6 +1,9 @@
+import { exiftool } from "exiftool-vendored";
 import { ChatGptModels } from "@/types/chatGPT";
 import AWS from "aws-sdk";
 import OpenAI from 'openai';
+import { writeFile, unlink } from "fs/promises";
+import { join } from "path";
 
 const openai = new OpenAI({
   project: process.env['PROJECT_ID'],
@@ -13,6 +16,7 @@ const s3 = new AWS.S3({
 });
 
 export async function POST(req: Request): Promise<Response> {
+  
   try {
     const formData = await req.formData();
     const file = formData.get('file') as File;
@@ -28,6 +32,31 @@ export async function POST(req: Request): Promise<Response> {
 
     const arrayBuffer = await file.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
+
+    const tempFilePath = join(process.cwd(), fileName);
+    await writeFile(tempFilePath, buffer);
+
+    const metadata = await exiftool.read(tempFilePath);
+    let description = '';
+
+    try {
+      if (metadata['Description']) {
+        description = metadata['Description'].split(".")[0].trim();
+      } else {
+        throw new Error('Description not found');
+      }
+    } finally {
+      console.log('description', description);
+      await unlink(tempFilePath);
+      exiftool.end();
+    }
+
+    const textTemplate = process.env.GENERATE_KEYWORDS_PROMT || "";
+    const promt = `
+      You will be provided with data in JSON format containing a block with a description and a block with an image URL. 
+      ${textTemplate}
+      Return a response in JSON as string format with the type: {keywords, description}.
+    `;
 
     const uploadParams = {
       Bucket: process.env.S3_BUCKET_NAME!,
@@ -45,11 +74,11 @@ export async function POST(req: Request): Promise<Response> {
       model,
       messages: [
         {
-          "role": "developer",
-          "content": [
+          role: "system",
+          content: [
             {
-              "type": "text",
-              "text": 'Return a response in JSON as string format with the type: {keywords, description}'
+              type: "text",
+              text: promt
             }
           ]
         },
@@ -58,7 +87,7 @@ export async function POST(req: Request): Promise<Response> {
           content: JSON.stringify([
             {
               type: "text",
-              text: process.env.GENERATE_KEYWORDS_PROMT || '',
+              text: description,
             },
             {
               type: "image_url",
