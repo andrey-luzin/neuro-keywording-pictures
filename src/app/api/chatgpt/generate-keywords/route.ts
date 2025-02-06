@@ -1,9 +1,9 @@
-import { exiftool } from "exiftool-vendored";
 import { ChatGptModels } from "@/types/chatGPT";
 import AWS from "aws-sdk";
 import OpenAI from 'openai';
 import { writeFile, unlink } from "fs/promises";
 import { join } from "path";
+import { getExifToolInstance } from "@/utils/exiftool";
 
 const openai = new OpenAI({
   project: process.env['PROJECT_ID'],
@@ -16,13 +16,13 @@ const s3 = new AWS.S3({
 });
 
 export async function POST(req: Request): Promise<Response> {
-  
   try {
     const formData = await req.formData();
     const file = formData.get('file') as File;
     const model = formData.get('model') as string || ChatGptModels.GPT4o;
+    const exiftool = getExifToolInstance();
 
-    console.log('model', model);
+    console.log('ChatGPT model: ', model);
 
     if (!file) {
       return new Response('Файл отсутствует', { status: 400 });
@@ -48,7 +48,6 @@ export async function POST(req: Request): Promise<Response> {
     } finally {
       console.log('description', description);
       await unlink(tempFilePath);
-      exiftool.end();
     }
 
     const textTemplate = process.env.GENERATE_KEYWORDS_PROMT || "";

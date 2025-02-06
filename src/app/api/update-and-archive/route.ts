@@ -1,12 +1,13 @@
-import { exiftool } from "exiftool-vendored";
 import fs from "fs";
 import path from "path";
 import AdmZip from "adm-zip";
 import { getCurrentTime } from '@/utils';
+import { getExifToolInstance } from "@/utils/exiftool";
 
 export async function POST(req: Request): Promise<Response> {
   try {
     const { files } = await req.json();
+    const exiftool = getExifToolInstance();
 
     if (!files || !Array.isArray(files)) {
       throw new Error("No files provided or invalid format");
