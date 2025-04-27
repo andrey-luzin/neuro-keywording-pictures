@@ -6,11 +6,15 @@ import { getExifToolInstance } from "@/utils/exiftool";
 
 export async function POST(req: Request): Promise<Response> {
   try {
-    const { files } = await req.json();
-    const exiftool = getExifToolInstance();
+    const formData = await req.formData();
 
-    if (!files || !Array.isArray(files)) {
-      throw new Error("No files provided or invalid format");
+    const files = formData.getAll('files') as File[];
+    const fileNames = formData.getAll('fileNames') as string[];
+    const keywordsList = formData.getAll('keywords') as string[];
+    const descriptionsList = formData.getAll('descriptions') as string[];
+
+    if (!files.length) {
+      throw new Error("No files uploaded");
     }
 
     const tempDir = path.join(process.cwd(), "temp");
@@ -18,27 +22,32 @@ export async function POST(req: Request): Promise<Response> {
       fs.mkdirSync(tempDir);
     }
 
+    const exiftool = getExifToolInstance();
     const zip = new AdmZip();
 
-    for (const file of files) {
-      const { fileName, keywords, description, file: base64File } = file;
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i];
+      const fileName = fileNames[i];
+      const keywords = keywordsList[i];
+      const description = descriptionsList[i];
 
-      if (!fileName || !base64File) {
-        throw new Error("Invalid file format. Each file must have 'fileName' and 'file'.");
+      if (!file || !fileName) {
+        throw new Error(`Missing file or fileName for one of the uploads`);
       }
 
+      const arrayBuffer = await file.arrayBuffer();
+      const buffer = Buffer.from(arrayBuffer);
       const tempFilePath = path.join(tempDir, fileName);
 
-      fs.writeFileSync(tempFilePath, Buffer.from(base64File, "base64"));
+      fs.writeFileSync(tempFilePath, buffer);
 
-      console.log('keywords', keywords);
-      console.log('description', description);
-      
       const exifData: Record<string, string> = {};
-      exifData.Author = process.env.AUTHOR_NAME || '';
-      exifData.Creator = process.env.AUTHOR_NAME || '';
-      exifData.Artist = process.env.AUTHOR_NAME || '';
-      exifData['By-line'] = process.env.AUTHOR_NAME || '';
+      const author = process.env.AUTHOR_NAME || '';
+
+      exifData.Author = author;
+      exifData.Creator = author;
+      exifData.Artist = author;
+      exifData['By-line'] = author;
 
       if (keywords) {
         exifData.Keywords = keywords;
@@ -50,8 +59,6 @@ export async function POST(req: Request): Promise<Response> {
         exifData['Caption-Abstract'] = description;
         exifData.Title = description;
       }
-
-      console.log('exifData', exifData);
 
       await exiftool.write(tempFilePath, exifData);
 
@@ -71,7 +78,7 @@ export async function POST(req: Request): Promise<Response> {
     });
   } catch (error) {
     if (error instanceof Error) {
-      return new Response(`Error generating: ${error.message}`, { status: 500 });
+      return new Response(`Error generating archive: ${error.message}`, { status: 500 });
     } else {
       return new Response("Unknown error occurred", { status: 500 });
     }

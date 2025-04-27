@@ -85,30 +85,18 @@ export const generateCSV = async (data: ChatGPTGenerateKeywordsResponse[]) => {
 
 export const updateExif = async (data: GenerateKeywordsResultType[]) => {
   try {
-    const preparedFiles = [];
+    const formData = new FormData();
+
     for (const result of data) {
-      const fileData = await new Promise<ChatGPTGenerateKeywordsResponse & { file: string }>((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = () => {
-          resolve({
-            fileName: result.fileName,
-            keywords: result.keywords,
-            description: result.description,
-            file: (reader.result as string).split(",")[1],
-          });
-        };
-        reader.onerror = (err) => reject(err);
-        reader.readAsDataURL(result.file);
-      });
-      preparedFiles.push(fileData);
+      formData.append('files', result.file);
+      formData.append('fileNames', result.fileName);
+      formData.append('keywords', result.keywords || '');
+      formData.append('descriptions', result.description || '');
     }
-  
+
     const response = await fetch("/api/update-and-archive", {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ files: preparedFiles }),
+      body: formData,
     });
 
     if (!response.ok) {
