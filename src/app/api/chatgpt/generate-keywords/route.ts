@@ -37,18 +37,9 @@ export async function POST(req: Request): Promise<Response> {
     await writeFile(tempFilePath, buffer);
 
     const metadata = await exiftool.read(tempFilePath);
-    let description = '';
+    const description = metadata['Description']?.split(".")[0].trim() ?? '';
 
-    try {
-      if (metadata['Description']) {
-        description = metadata['Description'].split(".")[0].trim();
-      } else {
-        throw new Error('Description not found');
-      }
-    } finally {
-      console.log('description', description);
-      await unlink(tempFilePath);
-    }
+    await unlink(tempFilePath);
 
     const textTemplate = process.env.GENERATE_KEYWORDS_PROMT || "";
     const promt = `
