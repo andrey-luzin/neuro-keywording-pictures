@@ -4,6 +4,7 @@ import OpenAI from 'openai';
 import { writeFile, unlink } from "fs/promises";
 import { join } from "path";
 import { getExifToolInstance } from "@/utils/exiftool";
+import { getFirstTwoSentences } from "@/utils";
 
 const openai = new OpenAI({
   project: process.env['PROJECT_ID'],
@@ -19,7 +20,7 @@ export async function POST(req: Request): Promise<Response> {
   try {
     const formData = await req.formData();
     const file = formData.get('file') as File;
-    const model = formData.get('model') as string || ChatGptModels.GPT4o;
+    const model = formData.get('model') as string || ChatGptModels.GPT5;
     const exiftool = getExifToolInstance();
 
     console.log('ChatGPT model: ', model);
@@ -37,7 +38,7 @@ export async function POST(req: Request): Promise<Response> {
     await writeFile(tempFilePath, buffer);
 
     const metadata = await exiftool.read(tempFilePath);
-    const description = metadata['Description']?.split(".")[0].trim() ?? '';
+    const description = getFirstTwoSentences(metadata['Description'] ?? '');
 
     await unlink(tempFilePath);
 
@@ -74,7 +75,7 @@ export async function POST(req: Request): Promise<Response> {
         },
         {
           role: "user",
-          content: JSON.stringify([
+          content: [
             {
               type: "text",
               text: description,
@@ -83,12 +84,12 @@ export async function POST(req: Request): Promise<Response> {
               type: "image_url",
               image_url: { url: fileUrl },
             },
-          ]),
+          ],
         },
       ],
       response_format: { type: "json_object" },
     });
- 
+
     const responseText = response.choices[0]?.message?.content ?? '';
     const parsedResponse = JSON.parse(responseText);
 
@@ -98,7 +99,7 @@ export async function POST(req: Request): Promise<Response> {
       description: parsedResponse.description,
     };
 
-    console.log('generate keywords, responseBody:', responseBody);
+    console.log('Generate keywords progress, response body:', responseBody);
 
     const deleteParams = {
       Bucket: process.env.S3_BUCKET_NAME!,

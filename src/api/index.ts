@@ -2,13 +2,13 @@ import { ChatGPTGenerateKeywordsResponse, ChatGptModels, GenerateKeywordsResultT
 
 export const generateKeywords = async (file: File, model?: ChatGptModels): Promise<ChatGPTGenerateKeywordsResponse> => {
   try {
-    console.log('generateKeywords');
+    console.log('Start generate keywords');
     const formData = new FormData();
     formData.append("file", file, file.name);
-    formData.append("model", model || ChatGptModels.GPT4o);
+    formData.append("model", model || ChatGptModels.GPT5);
 
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 15000);
+    const timeoutId = setTimeout(() => controller.abort(), 90000);
 
     const response = await fetch('/api/chatgpt/generate-keywords', {
       method: 'POST',
@@ -38,7 +38,7 @@ export const checkResults = async (fileData: GenerateKeywordsResultType, model?:
       fileName: fileData.fileName,
       keywords: fileData.keywords,
       description: fileData.description,
-      model: model || ChatGptModels.GPT4o,
+      model: model || ChatGptModels.GPT5,
     }
 
     const response = await fetch('/api/chatgpt/check-results', {

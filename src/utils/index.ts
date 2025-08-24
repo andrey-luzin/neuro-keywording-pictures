@@ -4,3 +4,11 @@ export const getCurrentTime = () => {
 
   return timeString;
 };
+
+export const getFirstTwoSentences = (text: string) => {
+  const match = text.match(/[^.!?]+[.!?]+(\s|$)/g); 
+  if (!match) {
+    return text; 
+  }
+  return match.slice(0, 2).join(" ").trim();
+}

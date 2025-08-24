@@ -15,16 +15,12 @@ type UploadButtonProps = unknown;
 
 const models = [
   {
-    label: ChatGptModels.GPT4o,
-    value: ChatGptModels.GPT4o,
+    label: ChatGptModels.GPT5,
+    value: ChatGptModels.GPT5,
   },
   {
-    label: ChatGptModels.GPT4oMini,
-    value: ChatGptModels.GPT4oMini,
-  },
-  {
-    label: ChatGptModels.GPT4oLatest,
-    value: ChatGptModels.GPT4oLatest,
+    label: ChatGptModels.GPT4_1,
+    value: ChatGptModels.GPT4_1,
   },
 ];
 
